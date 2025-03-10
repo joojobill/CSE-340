@@ -1,6 +1,274 @@
-/******* Change Box Model ***************/
-*,
-*:before,
-*:after {
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
+}
+
+/* Page Background */
+body {
+  background-image: url('/images/site/checkerboard.jpg'); /* Full-page background */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+/* Page Container (Ensures consistency with header & footer) */
+.page-container {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #333;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 1200px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  min-height: 700px; /* Ensures space */
+  overflow: hidden;
+}
+.page-container h1{
+  color: #444;
+}
+
+/* Background Image Inside Page Container */
+.page-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/images/vehicle/adventador-tn.jpg'); /* Change to actual image */
+  background-size: cover;
+  background-position: center;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+/* Ensure Content Overlays Background */
+.page-content {
+  position: relative;
+  z-index: 1;
+  padding: 20px;
+}
+
+/* ===== Header Styles ===== */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 20px;
+  width: 100%;
+  border-bottom: 2px solid #333;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #333;
+}
+
+/* ===== Navigation Bar ===== */
+nav {
+  background-color: #444;
+  color: white;
+  padding: 15px;
+  text-align: center;
+  width: 100%;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+}
+
+nav ul li {
+  margin: 0 20px;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav ul li a:hover {
+  color: #ff6347;
+}
+
+/* ===== Hero Section ===== */
+.hero {
+  text-align: center;
+  padding: 80px 20px;
+  color: white;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+}
+
+/* ===== Vehicle Details ===== */
+.vehicle-details {
+  text-align: center;
+  padding: 40px 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.vehicle-details h2 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  display: inline-block;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+/* Call-to-Action Button */
+.cta-button {
+  background-color: #ff6347;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.cta-button:hover {
+  background-color: #e5533d;
+}
+
+/* ===== Two Column Section ===== */
+.two-column-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Upgrades Section */
+.upgrades {
+  flex: 1;
+  background: #f4f4f4;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+/* Reviews Section */
+.reviews {
+  flex: 1;
+  background: #f4f4f4;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+/* Upgrades Section - 2 Column Grid */
+.upgrades ul {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.upgrades ul li {
+  display: flex;
+  justify-content: center;
+}
+
+.upgrades figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.upgrades img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.upgrades figcaption {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+/* ===== Footer ===== */
+footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+/* ===== Responsive Design ===== */
+
+/* Large Screens (Desktops) */
+@media (min-width: 1024px) {
+  .page-container {
+    width: 80%;
+    min-height: 800px;
+  }
+  
+  .hero h1 {
+    font-size: 4rem;
+  }
+}
+
+/* Medium Screens (Tablets) */
+@media (max-width: 1023px) {
+  .page-container {
+    width: 95%;
+    min-height: 700px;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .upgrades ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Small Screens (Phones) */
+@media (max-width: 600px) {
+  .upgrades ul {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .cta-button {
+    width: 100%;
+  }
+
+  nav ul {
+    flex-direction: column;
+  }
+
+  nav ul li {
+    margin-bottom: 10px;
+  }
 }
