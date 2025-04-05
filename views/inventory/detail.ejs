@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | CSE Motors</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  <%- include('../partials/navigation') %>
+
+  <main class="detail-container">
+    <div class="detail-grid">
+      <!-- Vehicle Image Section -->
+      <div class="detail-image">
+        <img src="<%= vehicle.inv_image %>" 
+             alt="<%= vehicle.inv_make %> <%= vehicle.inv_model %>">
+      </div>
+      
+      <!-- Vehicle Details Section -->
+      <div class="detail-info">
+        <h1><%= vehicle.inv_make %> <%= vehicle.inv_model %></h1>
+        
+        <div class="price-year">
+          <span class="price"><%= utilities.formatCurrency(vehicle.inv_price) %></span>
+          <span class="year"><%= vehicle.inv_year %></span>
+        </div>
+        
+        <div class="specs">
+          <p><strong>Mileage:</strong> <%= utilities.formatNumber(vehicle.inv_miles) %> miles</p>
+          <p><strong>Color:</strong> <%= vehicle.inv_color %></p>
+          <p><strong>Stock #:</strong> <%= vehicle.inv_id %></p>
+        </div>
+        
+        <div class="description">
+          <h2>Vehicle Description</h2>
+          <p><%= vehicle.inv_description %></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>
