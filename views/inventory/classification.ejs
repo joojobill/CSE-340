@@ -1,11 +1,54 @@
-<% if (title) { %>
-<h1><%= title %></h1>
-<% } else {
-    res.redirect('/')
-} %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | CSE Motors</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <%- include('../partials/header') %>
+  <%- include('../partials/navigation') %>
 
-<%# messages() %>
+  <main class="form-container">
+    <h1><%= title %></h1>
+    
+    <% if (messages.error) { %>
+      <div class="alert alert-danger">
+        <%= messages.error %>
+      </div>
+    <% } %>
 
+    <form action="/inv/add-classification" method="post">
+      <div class="form-group">
+        <label for="classification_name">Classification Name:</label>
+        <input 
+          type="text" 
+          name="classification_name" 
+          id="classification_name" 
+          class="form-control <%= errors && errors.find(e => e.param === 'classification_name') ? 'is-invalid' : '' %>"
+          value="<%= classification_name %>"
+          pattern="[a-zA-Z0-9]+"
+          title="No spaces or special characters allowed"
+          required
+        >
+        <% if (errors) { %>
+          <% const error = errors.find(e => e.param === 'classification_name') %>
+          <% if (error) { %>
+            <div class="invalid-feedback">
+              <%= error.msg %>
+            </div>
+          <% } %>
+        <% } %>
+        <small class="form-text text-muted">
+          Classification name cannot contain spaces or special characters
+        </small>
+      </div>
 
-<%# inventory items display. %>
-<%- grid %>
+      <button type="submit" class="btn btn-primary">Add Classification</button>
+    </form>
+  </main>
+
+  <%- include('../partials/footer') %>
+</body>
+</html>
