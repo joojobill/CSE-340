@@ -1,9 +1,8 @@
 const pool = require("../database/");
 
-/**
- * Gets all vehicle classifications
- * @returns {Promise<Array>} Array of classification records
- */
+/* ******************************************
+ * Get all classifications
+ * ******************************************/
 async function getClassifications() {
   try {
     return await pool.query(
@@ -15,11 +14,9 @@ async function getClassifications() {
   }
 }
 
-/**
- * Gets inventory items by classification ID
- * @param {number} classification_id 
- * @returns {Promise<Array>} Array of inventory items
- */
+/* ******************************************
+ * Get inventory by classification ID
+ * ******************************************/
 async function getInventoryByClassificationId(classification_id) {
   try {
     const data = await pool.query(
@@ -36,11 +33,9 @@ async function getInventoryByClassificationId(classification_id) {
   }
 }
 
-/**
- * Gets single inventory item by ID
- * @param {number} inv_id 
- * @returns {Promise<Object>} Inventory item details
- */
+/* ******************************************
+ * Get single inventory item by ID
+ * ******************************************/
 async function getInventoryById(inv_id) {
   try {
     const data = await pool.query(
@@ -54,18 +49,22 @@ async function getInventoryById(inv_id) {
   }
 }
 
-// Add new classification
+/* ******************************************
+ * Add new classification
+ * ******************************************/
 const addClassification = async (classification_name) => {
   try {
     const sql = "INSERT INTO classification (classification_name) VALUES ($1) RETURNING *";
     return await pool.query(sql, [classification_name]);
   } catch (error) {
+    console.error("addClassification error:", error);
     throw error;
   }
 };
 
-
-// Add new inventory
+/* ******************************************
+ * Add new inventory item
+ * ******************************************/
 const addInventory = async (
   inv_make,
   inv_model,
@@ -100,13 +99,16 @@ const addInventory = async (
       classification_id,
     ]);
   } catch (error) {
+    console.error("addInventory error:", error);
     throw error;
   }
 };
 
-
+// Export model functions
 module.exports = {
   getClassifications,
   getInventoryByClassificationId,
-  getInventoryById
+  getInventoryById,
+  addClassification,
+  addInventory
 };

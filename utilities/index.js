@@ -106,6 +106,50 @@ Util.handleErrors = fn => (req, res, next) => {
 };
 
 /* ****************************************
+ * Error Handler
+ * *************************************** */
+Util.handleError = function(error, req, res) {
+  console.error('Application Error:', error);
+  
+  // Set default error message
+  const errorMessage = error.message || 'An unexpected error occurred';
+  const statusCode = error.statusCode || 500;
+  
+  // If the request expects JSON (API call)
+  if (req.accepts('json')) {
+    return res.status(statusCode).json({ 
+      error: errorMessage,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+  
+  // For regular HTML requests
+  req.flash('error', errorMessage);
+  
+  // Redirect to a safe page or render an error view
+  if (req.originalUrl.startsWith('/inv')) {
+    return res.redirect('/inv/');
+  }
+  return res.redirect('/');
+};
+
+
+
+/* ****************************************
+ * Image Path Validator
+ * *************************************** */
+Util.validateImagePath = function(path) {
+  if (!path) return '/images/vehicles/no-image.jpg';
+  
+  // Ensure path starts with correct directory
+  if (!path.startsWith('/images/vehicles/')) {
+    return `/images/vehicles/${path.replace(/^\/?images\/?/, '')}`;
+  }
+  
+  return path;
+};
+
+/* ****************************************
  * Login Status Check Middleware
  * *************************************** */
 Util.checkLogin = (req, res, next) => {

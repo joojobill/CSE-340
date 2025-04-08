@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('../partials/head') %>
   <title><%= title %> | CSE Motors</title>
-  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <%- include('../partials/header') %>
   <%- include('../partials/navigation') %>
 
-  <main class="form-container">
+  <main class="container form-view">
     <h1><%= title %></h1>
     
     <% if (messages.error) { %>
@@ -19,14 +17,14 @@
       </div>
     <% } %>
 
-    <form action="/inv/add-classification" method="post">
+    <form action="/inv/add-classification" method="post" class="needs-validation" novalidate>
       <div class="form-group">
         <label for="classification_name">Classification Name:</label>
         <input 
           type="text" 
           name="classification_name" 
           id="classification_name" 
-          class="form-control <%= errors && errors.find(e => e.param === 'classification_name') ? 'is-invalid' : '' %>"
+          class="form-control <%= (typeof errors !== 'undefined' && errors.find(e => e.param === 'classification_name')) ? 'is-invalid' : '' %>"
           value="<%= classification_name %>"
           pattern="[a-zA-Z0-9]+"
           title="No spaces or special characters allowed"
@@ -41,14 +39,30 @@
           <% } %>
         <% } %>
         <small class="form-text text-muted">
-          Classification name cannot contain spaces or special characters
+          Must contain only letters and numbers (no spaces or special characters)
         </small>
       </div>
 
       <button type="submit" class="btn btn-primary">Add Classification</button>
+      <a href="/inv/" class="btn btn-secondary">Cancel</a>
     </form>
   </main>
 
   <%- include('../partials/footer') %>
+  
+  <script>
+    // Client-side validation
+    (function() {
+      'use strict';
+      const form = document.querySelector('.needs-validation');
+      form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    })();
+  </script>
 </body>
 </html>

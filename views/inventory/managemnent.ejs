@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('../partials/head') %>
   <title><%= title %> | CSE Motors</title>
-  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <%- include('../partials/header') %>
   <%- include('../partials/navigation') %>
 
-  <main class="management-container">
+  <main class="container management-view">
     <h1><%= title %></h1>
     
     <% if (messages.success) { %>
@@ -25,12 +23,22 @@
       </div>
     <% } %>
 
-    <div class="management-links">
-      <a href="/inv/add-classification" class="btn btn-primary">
-        Add New Classification
+    <% if (messages.errors) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% messages.errors.forEach(error => { %>
+            <li><%= error.msg %></li>
+          <% }); %>
+        </ul>
+      </div>
+    <% } %>
+
+    <div class="management-actions">
+      <a href="/inv/add-classification" class="btn btn-primary btn-lg">
+        <i class="fas fa-plus-circle"></i> Add New Classification
       </a>
-      <a href="/inv/add-inventory" class="btn btn-primary">
-        Add New Inventory
+      <a href="/inv/add-inventory" class="btn btn-primary btn-lg">
+        <i class="fas fa-car"></i> Add New Inventory
       </a>
     </div>
   </main>
