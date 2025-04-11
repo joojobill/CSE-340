@@ -1,12 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <%- include('../partials/head') %>
   <title><%= title %> | CSE Motors</title>
+  <style>
+    .is-invalid { border-color: #dc3545; }
+    .invalid-feedback { color: #dc3545; }
+    .form-view { 
+      max-width: 1200px; 
+      margin: 2rem auto;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 2rem;
+      border-radius: 10px;
+    }
+    .form-actions { margin-top: 2rem; }
+    .form-view h1,
+    .form-view label {
+      color: white !important;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+  </style>
 </head>
 <body>
-  <%- include('../partials/header') %>
-  <%- include('../partials/navigation') %>
 
   <main class="container form-view">
     <h1><%= title %></h1>
@@ -32,6 +46,8 @@
               class="form-control <%= (errors || []).find(e => e.param === 'inv_make') ? 'is-invalid' : '' %>"
               value="<%= formData.inv_make %>"
               required
+              minlength="2"
+              maxlength="30"
             >
             <% if (errors) { %>
               <% const error = errors.find(e => e.param === 'inv_make') %>
@@ -52,6 +68,8 @@
               class="form-control <%= (errors || []).find(e => e.param === 'inv_model') ? 'is-invalid' : '' %>"
               value="<%= formData.inv_model %>"
               required
+              minlength="2"
+              maxlength="30"
             >
             <% if (errors) { %>
               <% const error = errors.find(e => e.param === 'inv_model') %>
@@ -143,10 +161,11 @@
               type="number" 
               name="inv_miles" 
               id="inv_miles" 
-              class="form-control <%= (errors || []).find(e => e.param === 'inv_miles') ? 'is-invalid' : '%>"
+              class="form-control <%= (errors || []).find(e => e.param === 'inv_miles') ? 'is-invalid' : '' %>"
               value="<%= formData.inv_miles %>"
               min="0"
               required
+              oninput="this.value = this.value.replace(/[^0-9]/g, '');"
             >
             <% if (errors) { %>
               <% const error = errors.find(e => e.param === 'inv_miles') %>
@@ -250,19 +269,20 @@
     </form>
   </main>
 
-  <%- include('../partials/footer') %>
-  
   <script>
-    // Client-side validation
     (function() {
       'use strict';
-      const form = document.querySelector('.needs-validation');
-      form.addEventListener('submit', function(event) {
-        if (!form.checkValidity()) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        form.classList.add('was-validated');
+      window.addEventListener('load', function() {
+        const forms = document.getElementsByClassName('needs-validation');
+        Array.prototype.filter.call(forms, function(form) {
+          form.addEventListener('submit', function(event) {
+            if (form.checkValidity() === false) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+          }, false);
+        });
       }, false);
     })();
   </script>

@@ -5,7 +5,26 @@
     <!-- Hero Section -->
     <section class="hero">
       <h1>Welcome to CSE Motors!</h1>
-      <%- messages() %>
+      <!-- With this: -->
+<% if (messages.success) { %>
+  <div class="alert alert-success">
+    <%= messages.success %>
+  </div>
+<% } %>
+<% if (messages.error) { %>
+  <div class="alert alert-danger">
+    <%= messages.error %>
+  </div>
+<% } %>
+<% if (messages.errors && messages.errors.length) { %>
+  <div class="alert alert-danger">
+    <ul>
+      <% messages.errors.forEach(error => { %>
+        <li><%= error.msg %></li>
+      <% }); %>
+    </ul>
+  </div>
+<% } %>
     </section>
 
     <!-- Vehicle Details -->

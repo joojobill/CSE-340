@@ -4,11 +4,7 @@ const invController = require("../controllers/invController");
 const utilities = require("../utilities");
 const { body, validationResult } = require('express-validator');
 
-/* ******************************************
- * Validation Rules and Middleware
- * ******************************************/
 const validate = {
-  // Classification validation rules
   classificationRules: () => {
     return [
       body('classification_name')
@@ -19,14 +15,19 @@ const validate = {
     ];
   },
 
-  // Inventory validation rules
   inventoryRules: () => {
     return [
-      body('inv_make').trim().notEmpty().withMessage('Make is required'),
-      body('inv_model').trim().notEmpty().withMessage('Model is required'),
+      body('inv_make')
+        .trim()
+        .notEmpty().withMessage('Make is required')
+        .isLength({ min: 2, max: 30 }).withMessage('Make must be 2-30 characters'),
+      body('inv_model')
+        .trim()
+        .notEmpty().withMessage('Model is required')
+        .isLength({ min: 2, max: 30 }).withMessage('Model must be 2-30 characters'),
       body('inv_year')
         .isInt({ min: 1900, max: new Date().getFullYear() + 1 })
-        .withMessage('Valid year is required'),
+        .withMessage(`Year must be between 1900 and ${new Date().getFullYear() + 1}`),
       body('inv_description')
         .trim()
         .isLength({ min: 10 }).withMessage('Description must be at least 10 characters'),
@@ -42,7 +43,6 @@ const validate = {
     ];
   },
 
-  // Check validation results for classification
   checkClassificationData: async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -53,7 +53,6 @@ const validate = {
     next();
   },
 
-  // Check validation results for inventory
   checkInventoryData: async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -65,14 +64,8 @@ const validate = {
   }
 };
 
-/* ******************************************
- * Routes
- * ******************************************/
-
-// Management view route
 router.get("/", utilities.handleErrors(invController.buildManagementView));
 
-// Classification routes
 router.get("/add-classification", utilities.handleErrors(invController.buildAddClassification));
 router.post(
   "/add-classification",
@@ -81,7 +74,6 @@ router.post(
   utilities.handleErrors(invController.addClassification)
 );
 
-// Inventory routes
 router.get("/add-inventory", utilities.handleErrors(invController.buildAddInventory));
 router.post(
   "/add-inventory",
@@ -90,10 +82,7 @@ router.post(
   utilities.handleErrors(invController.addInventory)
 );
 
-// Inventory by classification
 router.get("/type/:classificationId", utilities.handleErrors(invController.buildByClassificationId));
-
-// Inventory detail
 router.get("/detail/:inv_id", utilities.handleErrors(invController.buildByInventoryId));
 
 module.exports = router;
