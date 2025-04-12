@@ -17,6 +17,7 @@ router.post(
   utilities.handleErrors(accountController.accountLogin)
 );
 
+
 // Registration routes
 router.get('/register', utilities.handleErrors(accountController.buildRegister));
 router.post(

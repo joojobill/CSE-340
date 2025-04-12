@@ -1,0 +1,17 @@
+
+
+<main class="container">
+  <h1><%= title %></h1>
+  
+  <% if (messages.error) { %>
+    <div class="alert alert-danger">
+      <%= messages.error %>
+    </div>
+  <% } %>
+
+  <%- grid %>
+
+  <div class="text-center mt-4">
+    <a href="/inv/" class="btn btn-secondary">Back to Inventory</a>
+  </div>
+</main>

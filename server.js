@@ -7,6 +7,7 @@ process.removeAllListeners('warning');
 /* ***********************
  * Require Statements
  *************************/
+const cookieParser = require("cookie-parser")
 const path = require('path');
 const session = require("express-session");
 const express = require("express");
@@ -20,6 +21,7 @@ const utilities = require("./utilities/");
 const accountRouter = require('./routes/accountRoute');
 const bodyParser = require("body-parser");
 const pool = require('./database/');
+const csrf = require('csurf');
 
 // Verify essential environment variables
 if (!process.env.SESSION_SECRET) {
@@ -31,6 +33,7 @@ if (!process.env.SESSION_SECRET) {
  * Middleware
  * ************************/
 // Session configuration with PostgreSQL store
+app.use(cookieParser());
 app.use(session({
   store: new (require('connect-pg-simple')(session))({
     pool: pool.pool,
@@ -47,6 +50,16 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
+
+// CSRF Protection
+const csrfProtection = csrf({ cookie: true });
+app.use(csrfProtection);
+
+// Make CSRF token available in all views
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 
 // Flash messages middleware
 app.use(require('connect-flash')());
@@ -104,7 +117,6 @@ app.use(async (err, req, res, next) => {
   let nav = await utilities.getNav();
   console.error(`Error at: "${req.originalUrl}": ${err.message}`);
   
-  // Set flash messages for the error page if needed
   req.flash('error', err.message);
   
   res.status(err.status || 500).render("errors/error", {
@@ -148,7 +160,3 @@ const gracefulShutdown = () => {
 
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
-
-// Debug logging
-console.log("Views directory:", path.join(__dirname, "views"));
-console.log("Layout file:", path.join(__dirname, "views", "layouts", "layout.ejs"));

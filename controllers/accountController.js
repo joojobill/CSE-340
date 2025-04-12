@@ -2,10 +2,12 @@ const accountModel = require('../models/account-model');
 const utilities = require('../utilities');
 const bcrypt = require('bcryptjs');
 
+const accountController = {};
+
 /* ****************************************
 *  Deliver registration view
 * *************************************** */
-async function buildRegister(req, res, next) {
+accountController.buildRegister = async (req, res, next) => {
   try {
     let nav = await utilities.getNav();
     res.render("account/register", {
@@ -26,12 +28,12 @@ async function buildRegister(req, res, next) {
     console.error("buildRegister error: " + error.message);
     next(error);
   }
-}
+};
 
 /* ****************************************
 *  Deliver login view
 * *************************************** */
-async function buildLogin(req, res, next) {
+accountController.buildLogin = async (req, res, next) => {
   try {
     let nav = await utilities.getNav();
     res.render("account/login", {
@@ -49,12 +51,32 @@ async function buildLogin(req, res, next) {
   } catch (error) {
     next(error);
   }
-}
+};
+
+/* ****************************************
+*  Deliver account management view
+* *************************************** */
+accountController.buildAccountManagement = async (req, res, next) => {
+  try {
+    let nav = await utilities.getNav();
+    res.render("account/management", {
+      title: "Account Management",
+      nav,
+      errors: null,
+      messages: {
+        error: req.flash('error'),
+        success: req.flash('success')
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /* ****************************************
 *  Process registration request
 * *************************************** */
-async function registerAccount(req, res, next) {
+accountController.registerAccount = async (req, res, next) => {
   try {
     const { 
       account_firstname, 
@@ -63,13 +85,11 @@ async function registerAccount(req, res, next) {
       account_password 
     } = req.body;
 
-    // Validate input
     if (!account_firstname || !account_lastname || !account_email || !account_password) {
       req.flash("error", "All fields are required");
       return res.redirect("/account/register");
     }
 
-    // Check if email exists
     const emailExists = await accountModel.checkExistingEmail(account_email);
     if (emailExists) {
       req.flash("error", "Email already exists. Please log in or use different email.");
@@ -79,10 +99,8 @@ async function registerAccount(req, res, next) {
       return res.redirect("/account/register");
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(account_password, 10);
 
-    // Register account
     const regResult = await accountModel.registerAccount(
       account_firstname,
       account_lastname,
@@ -107,12 +125,12 @@ async function registerAccount(req, res, next) {
     req.flash("account_email", req.body.account_email);
     res.redirect("/account/register");
   }
-}
+};
 
 /* ****************************************
 *  Process login request
 * *************************************** */
-async function accountLogin(req, res, next) {
+accountController.accountLogin = async (req, res, next) => {
   try {
     const { account_email, account_password } = req.body;
     const accountData = await accountModel.getAccountByEmail(account_email);
@@ -130,7 +148,6 @@ async function accountLogin(req, res, next) {
       return res.redirect("/account/login");
     }
 
-    // Successful login
     req.session.account = {
       id: accountData.account_id,
       firstname: accountData.account_firstname,
@@ -145,11 +162,6 @@ async function accountLogin(req, res, next) {
     console.error("accountLogin error: " + error.message);
     next(error);
   }
-}
-
-module.exports = { 
-  buildRegister, 
-  registerAccount,
-  buildLogin,
-  accountLogin
 };
+
+module.exports = accountController;

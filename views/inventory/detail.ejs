@@ -1,46 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('../partials/head') %>
   <title><%= title %> | CSE Motors</title>
-  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <%- include('../partials/header') %>
   <%- include('../partials/navigation') %>
 
   <main class="detail-container">
-    <div class="detail-grid">
-      <!-- Vehicle Image Section -->
-      <div class="detail-image">
-        <img src="<%= vehicle.inv_image %>" 
-             alt="<%= vehicle.inv_make %> <%= vehicle.inv_model %>">
+    <% if (messages.success) { %>
+      <div class="alert alert-success">
+        <%= messages.success %>
       </div>
-      
-      <!-- Vehicle Details Section -->
-      <div class="detail-info">
-        <h1><%= vehicle.inv_make %> <%= vehicle.inv_model %></h1>
-        
-        <div class="price-year">
-          <span class="price"><%= utilities.formatCurrency(vehicle.inv_price) %></span>
-          <span class="year"><%= vehicle.inv_year %></span>
+    <% } %>
+
+    <% if (messages.error) { %>
+      <div class="alert alert-danger">
+        <%= messages.error %>
+      </div>
+    <% } %>
+
+    <% if (vehicle) { %>
+      <div class="detail-grid">
+        <!-- Vehicle Image Section -->
+        <div class="detail-image">
+          <img src="<%= vehicle.inv_image || '/images/vehicles/no-image.jpg' %>" 
+               alt="<%= vehicle.inv_make %> <%= vehicle.inv_model %>"
+               class="img-fluid">
         </div>
         
-        <div class="specs">
-          <p><strong>Mileage:</strong> <%= utilities.formatNumber(vehicle.inv_miles) %> miles</p>
-          <p><strong>Color:</strong> <%= vehicle.inv_color %></p>
-          <p><strong>Stock #:</strong> <%= vehicle.inv_id %></p>
-        </div>
-        
-        <div class="description">
-          <h2>Vehicle Description</h2>
-          <p><%= vehicle.inv_description %></p>
+        <!-- Vehicle Details Section -->
+        <div class="detail-info">
+          <h1><%= vehicle.inv_year %> <%= vehicle.inv_make %> <%= vehicle.inv_model %></h1>
+          
+          <div class="price-year">
+            <span class="price"><%= utilities.formatCurrency(vehicle.inv_price) %></span>
+            <span class="year"><%= vehicle.inv_year %></span>
+          </div>
+          
+          <div class="specs">
+            <p><strong>Mileage:</strong> <%= utilities.formatNumber(vehicle.inv_miles) %> miles</p>
+            <p><strong>Color:</strong> <%= vehicle.inv_color %></p>
+            <p><strong>Stock #:</strong> <%= vehicle.inv_id %></p>
+            <% if (vehicle.classification_name) { %>
+              <p><strong>Classification:</strong> <%= vehicle.classification_name %></p>
+            <% } %>
+          </div>
+          
+          <div class="description">
+            <h2>Vehicle Description</h2>
+            <p><%= vehicle.inv_description || 'No description available' %></p>
+          </div>
         </div>
       </div>
-    </div>
+    <% } else { %>
+      <div class="alert alert-danger">
+        Vehicle details could not be loaded. Please try again later.
+      </div>
+    <% } %>
   </main>
 
   <%- include('../partials/footer') %>
+
+  <script>
+    // Additional interactive elements can be added here
+    document.addEventListener('DOMContentLoaded', function() {
+      // You could add image zoom functionality here
+      const mainImage = document.querySelector('.detail-image img');
+      if (mainImage) {
+        mainImage.addEventListener('click', function() {
+          this.classList.toggle('zoomed');
+        });
+      }
+    });
+  </script>
 </body>
 </html>

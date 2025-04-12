@@ -1,57 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/head') %>
+  <title><%= title %> | CSE Motors</title>
+  <style>
+    .form-container {
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .form-title {
+      color: #2c3e50;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-text {
+      font-size: 0.875rem;
+      color: #6c757d;
+    }
+    .btn-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2rem;
+    }
+    .is-invalid {
+      border-color: #dc3545;
+    }
+    .is-valid {
+      border-color: #28a745;
+    }
+    .invalid-feedback {
+      display: block;
+      width: 100%;
+      margin-top: 0.25rem;
+      font-size: 0.875rem;
+      color: #dc3545;
+    }
+    .valid-feedback {
+      display: block;
+      width: 100%;
+      margin-top: 0.25rem;
+      font-size: 0.875rem;
+      color: #28a745;
+    }
+  </style>
+</head>
+<body>
+ 
 
-  <main class="container form-view">
-    <h1><%= title %></h1>
-    
-    <% if (messages.error) { %>
-      <div class="alert alert-danger">
-        <%= messages.error %>
-      </div>
-    <% } %>
+  <main class="container">
+    <div class="form-container">
+      <h1 class="form-title"><%= title %></h1>
+      
+      <% if (messages.error) { %>
+        <div class="alert alert-danger">
+          <%= messages.error %>
+        </div>
+      <% } %>
 
-    <form action="/inv/add-classification" method="post" class="needs-validation" novalidate>
-      <div class="form-group">
-        <label for="classification_name">Classification Name:</label>
-        <input 
-          type="text" 
-          name="classification_name" 
-          id="classification_name" 
-          class="form-control <%= (typeof errors !== 'undefined' && errors.find(e => e.param === 'classification_name')) ? 'is-invalid' : '' %>"
-          value="<%= classification_name %>"
-          pattern="[a-zA-Z0-9]+"
-          title="No spaces or special characters allowed"
-          required
-        >
-        <% if (errors) { %>
-          <% const error = errors.find(e => e.param === 'classification_name') %>
-          <% if (error) { %>
-            <div class="invalid-feedback">
-              <%= error.msg %>
-            </div>
-          <% } %>
-        <% } %>
-        <small class="form-text text-muted">
-          Must contain only letters and numbers (no spaces or special characters)
-        </small>
-      </div>
+      <form id="classificationForm" action="/inv/add-classification" method="post" class="needs-validation" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        
+        <div class="form-group">
+          <label for="classification_name" class="form-label">Classification Name</label>
+          <input 
+            type="text" 
+            name="classification_name" 
+            autofocus
+          >
+          <div id="classificationError" class="invalid-feedback">
+            <% if (errors && errors.length) { %>
+              <% const error = errors.find(e => e.param === 'classification_name') %>
+              <%= error ? error.msg : '' %>
+            <% } %>
+          </div>
+          <div id="classificationValid" class="valid-feedback">
+            Looks good!
+          </div>
+          <div class="form-text">
+            Must contain only letters and numbers (no spaces or special characters)
+          </div>
+        </div>
 
-      <button type="submit" class="btn btn-primary">Add Classification</button>
-      <a href="/inv/" class="btn btn-secondary">Cancel</a>
-    </form>
+        <div class="btn-container">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-save"></i> Add Classification
+          </button>
+          <a href="/inv/" class="btn btn-secondary btn-lg">
+            <i class="fas fa-times"></i> Cancel
+          </a>
+        </div>
+      </form>
+    </div>
   </main>
-  
+
+
   <script>
     // Client-side validation
-    (function() {
-      'use strict';
-      const form = document.querySelector('.needs-validation');
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('classificationForm');
+      const input = document.getElementById('classification_name');
+      const errorDiv = document.getElementById('classificationError');
+      const validDiv = document.getElementById('classificationValid');
+
+      // Real-time validation
+      input.addEventListener('input', function() {
+        const value = this.value.trim();
+        if (value === '') {
+          errorDiv.textContent = 'Classification name is required';
+          this.classList.add('is-invalid');
+          validDiv.style.display = 'none';
+        } else if (!/^[a-zA-Z0-9]+$/.test(value)) {
+          errorDiv.textContent = 'No spaces or special characters allowed';
+          this.classList.add('is-invalid');
+          validDiv.style.display = 'none';
+        } else if (value.length > 30) {
+          errorDiv.textContent = 'Must be less than 30 characters';
+          this.classList.add('is-invalid');
+          validDiv.style.display = 'none';
+        } else {
+          errorDiv.textContent = '';
+          this.classList.remove('is-invalid');
+          this.classList.add('is-valid');
+          validDiv.style.display = 'block';
+        }
+      });
+
+      // Form submission validation
       form.addEventListener('submit', function(event) {
         if (!form.checkValidity()) {
           event.preventDefault();
           event.stopPropagation();
+          
+          // Validate the classification name
+          const value = input.value.trim();
+          if (value === '') {
+            errorDiv.textContent = 'Classification name is required';
+            input.classList.add('is-invalid');
+          } else if (!/^[a-zA-Z0-9]+$/.test(value)) {
+            errorDiv.textContent = 'No spaces or special characters allowed';
+            input.classList.add('is-invalid');
+          } else if (value.length > 30) {
+            errorDiv.textContent = 'Must be less than 30 characters';
+            input.classList.add('is-invalid');
+          }
         }
+        
         form.classList.add('was-validated');
       }, false);
-    })();
+    });
   </script>
 </body>
 </html>
