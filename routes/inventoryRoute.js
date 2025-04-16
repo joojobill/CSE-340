@@ -62,8 +62,7 @@ const validate = {
  * Routes
  * ************************** */
 router.get("/", 
-  csrfProtection,
-  utilities.handleErrors(invController.buildManagementView)
+  csrfProtection, utilities.handleErrors(invController.buildManagementView)
 );
 
 router.get("/add-classification", 

@@ -34,6 +34,7 @@ if (!process.env.SESSION_SECRET) {
  * ************************/
 // Session configuration with PostgreSQL store
 app.use(cookieParser());
+app.use(utilities.checkJWTToken)
 app.use(session({
   store: new (require('connect-pg-simple')(session))({
     pool: pool.pool,

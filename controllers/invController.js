@@ -42,9 +42,9 @@ invCont.buildByClassificationId = async (req, res, next) => {
     res.render("inventory/classification", {
       title: `${data.rows[0].classification_name} vehicles`,
       nav: await utilities.getNav(),
-      grid,
+      grid: grid,
       messages: req.flash(),
-      classification_name: data.rows[0].classification_name, // Added this line
+      classification_name: data.rows[0].classification_name, 
       errors: [] // Ensure errors is defined
     });
   } catch (error) {
@@ -85,7 +85,7 @@ invCont.buildByInventoryId = async (req, res, next) => {
  * ******************************************/
 invCont.buildAddClassification = async (req, res, next) => {
   try {
-    res.render("inventory/classification", {
+    res.render("inventory/add-classification", {
       title: "Add Classification",
       nav: await utilities.getNav(),
       errors: req.flash('errors') || [], // Ensure errors is always an array

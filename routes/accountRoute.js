@@ -10,13 +10,11 @@ const validate = require('../utilities/account-validation');
 
 // Login routes
 router.get('/login', utilities.handleErrors(accountController.buildLogin));
-router.post(
-  '/login',
+router.post('/login',
   validate.loginRules(),
   validate.checkLoginData,
   utilities.handleErrors(accountController.accountLogin)
 );
-
 
 // Registration routes
 router.get('/register', utilities.handleErrors(accountController.buildRegister));
@@ -28,15 +26,15 @@ router.post(
 );
 
 // Account management route
-router.get(
-  '/',
+router.get('/',
   utilities.checkLogin,
-  utilities.handleErrors(accountController.buildAccountManagement)
+  utilities.handleErrors(accountController.accountManagement)
 );
 
 // Logout route
 router.get('/logout', (req, res) => {
-  req.session.destroy();
+  res.clearCookie('jwt');
+  req.flash('success', 'You have been logged out');
   res.redirect('/');
 });
 
