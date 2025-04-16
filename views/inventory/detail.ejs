@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <%- include('../partials/head') %>
+
   <title><%= title %> | CSE Motors</title>
 </head>
 <body>
-  <%- include('../partials/header') %>
-  <%- include('../partials/navigation') %>
 
   <main class="detail-container">
     <% if (messages.success) { %>
@@ -60,8 +58,6 @@
       </div>
     <% } %>
   </main>
-
-  <%- include('../partials/footer') %>
 
   <script>
     // Additional interactive elements can be added here

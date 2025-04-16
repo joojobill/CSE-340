@@ -26,9 +26,7 @@ router.post(
 );
 
 // Account management route
-router.get('/',
-  utilities.checkLogin,
-  utilities.handleErrors(accountController.accountManagement)
+router.get('/', utilities.checkLogin, utilities.handleErrors(accountController.buildManagement)
 );
 
 // Logout route
@@ -37,5 +35,27 @@ router.get('/logout', (req, res) => {
   req.flash('success', 'You have been logged out');
   res.redirect('/');
 });
+
+
+// Update account routes
+router.get('/update/:account_id', 
+  utilities.checkLogin,
+  utilities.handleErrors(accountController.buildUpdate)
+);
+
+router.post('/update', 
+  utilities.checkLogin,
+  validate.updateRules(),
+  validate.checkUpdateData,
+  utilities.handleErrors(accountController.updateAccount)
+);
+
+router.post('/update-password', 
+  utilities.checkLogin,
+  validate.passwordRules(),
+  validate.checkPasswordData,
+  utilities.handleErrors(accountController.updatePassword)
+);
+
 
 module.exports = router;

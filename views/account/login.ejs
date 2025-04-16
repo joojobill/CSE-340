@@ -1,8 +1,7 @@
-
 <main class="container">
   <h1><%= title %></h1>
 
-  <% if (messages?.error) { %>
+  <% if (messages?.error && messages.error.length) { %>
     <div class="flash-message error">
       <% messages.error.forEach(msg => { %>
         <p><%= msg %></p>
@@ -10,13 +9,18 @@
     </div>
   <% } %>
 
-  <% if (messages?.success) { %>
+  <% if (messages?.success && messages.success.length) { %>
     <div class="flash-message success">
-      <p><%= messages.success %></p>
+      <% messages.success.forEach(msg => { %>
+        <p><%= msg %></p>
+      <% }); %>
     </div>
   <% } %>
 
   <form id="loginForm" action="/account/login" method="post" class="login-form">
+    <!-- ✅ CSRF Token Required for POST forms -->
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
     <div class="form-group">
       <label for="account_email">Email Address*</label>
       <input 
@@ -50,8 +54,6 @@
     <p>Don't have an account? <a href="/account/register">Register here</a></p>
   </div>
 </main>
-
-
 
 <script>
   // Password toggle functionality

@@ -2,70 +2,87 @@
  * This server.js file is the primary file of the 
  * application. It is used to control the project.
  *******************************************/
+// Increase event listeners limit
+require('events').EventEmitter.defaultMaxListeners = 15;
 process.removeAllListeners('warning');
 
 /* ***********************
  * Require Statements
  *************************/
-const cookieParser = require("cookie-parser")
 const path = require('path');
-const session = require("express-session");
 const express = require("express");
 const expressLayouts = require("express-ejs-layouts");
+const session = require("express-session");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const flash = require("connect-flash");
+const csrf = require('csurf');
 const env = require("dotenv").config();
 const app = express();
+const jwt = require("jsonwebtoken");
+
+// Import Routes and Controllers
 const static = require("./routes/static");
 const baseController = require("./controllers/baseController");
 const inventoryRoute = require("./routes/inventoryRoute");
+const accountRouter = require("./routes/accountRoute");
+
+// Utilities and database
 const utilities = require("./utilities/");
-const accountRouter = require('./routes/accountRoute');
-const bodyParser = require("body-parser");
 const pool = require('./database/');
-const csrf = require('csurf');
 
 // Verify essential environment variables
-if (!process.env.SESSION_SECRET) {
-  console.error("FATAL: SESSION_SECRET is not defined");
+if (!process.env.SESSION_SECRET || !process.env.ACCESS_TOKEN_SECRET) {
+  console.error("FATAL: Missing required environment variables");
   process.exit(1);
 }
 
 /* ***********************
- * Middleware
- * ************************/
-// Session configuration with PostgreSQL store
+ * Middleware Setup
+ *************************/
 app.use(cookieParser());
-app.use(utilities.checkJWTToken)
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Session Configuration
 app.use(session({
   store: new (require('connect-pg-simple')(session))({
-    pool: pool.pool,
-    createTableIfMissing: true,
+    pool: pool.pool, 
+    createTableIfMissing: true, 
     tableName: 'user_sessions'
   }),
-  secret: process.env.SESSION_SECRET,
-  resave: false,
+  secret: process.env.SESSION_SECRET, 
+  resave: false, 
   saveUninitialized: false,
-  name: 'sessionId',
+  name: 'sessionId', 
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', 
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
-// CSRF Protection
-const csrfProtection = csrf({ cookie: true });
-app.use(csrfProtection);
+app.use(flash());
 
-// Make CSRF token available in all views
+// User Authentication Middleware
 app.use((req, res, next) => {
-  res.locals.csrfToken = req.csrfToken();
+  res.locals.loggedin = false;
+  res.locals.user = null;
+  
+  if (req.cookies.jwt) {
+    try {
+      const user = jwt.verify(req.cookies.jwt, process.env.ACCESS_TOKEN_SECRET);
+      res.locals.loggedin = true;
+      res.locals.user = user;
+      res.locals.accountData = user; // For compatibility
+    } catch (err) {
+      res.clearCookie("jwt");
+    }
+  }
   next();
 });
 
-// Flash messages middleware
-app.use(require('connect-flash')());
-
-// Enhanced message handling middleware
+// Flash messages
 app.use((req, res, next) => {
   res.locals.messages = {
     success: req.flash('success'),
@@ -78,9 +95,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Body parsing middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// CSRF Protection
+const csrfProtection = csrf({ cookie: true });
+app.use(csrfProtection);
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 
 /* ***********************
  * View Engine and Templates
@@ -93,35 +114,25 @@ app.set("layout", "./layouts/layout");
 /* ***********************
  * Routes
  *************************/
-// Static routes
 app.use(static);
-
-// Account routes
 app.use("/account", accountRouter);
-
-// Inventory routes
 app.use("/inv", inventoryRoute);
-
-// Base route
 app.get("/", utilities.handleErrors(baseController.buildHome));
 
-// File Not Found Route - must be last route in list
+// 404 Handler
 app.use(async (req, res, next) => {
-  next({status: 404, message: 'Sorry, we appear to have lost that page.'});
+  next({ status: 404, message: "Sorry, we appear to have lost that page." });
 });
 
 /* ***********************
- * Express Error Handler
- * Place after all other middleware
+ * Error Handler
  *************************/
 app.use(async (err, req, res, next) => {
   let nav = await utilities.getNav();
   console.error(`Error at: "${req.originalUrl}": ${err.message}`);
-  
-  req.flash('error', err.message);
-  
+
   res.status(err.status || 500).render("errors/error", {
-    title: err.status || 'Server Error',
+    title: err.status || "Server Error",
     message: err.message,
     nav,
     messages: {
@@ -135,29 +146,27 @@ app.use(async (err, req, res, next) => {
  * Server Configuration
  *************************/
 const port = process.env.PORT || 5500;
-const host = process.env.HOST || '0.0.0.0';
+const host = process.env.HOST || "0.0.0.0";
 
-// Start server
 const server = app.listen(port, host, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode`);
   console.log(`Access at: http://${host}:${port}`);
 });
 
-// Graceful shutdown handling
 const gracefulShutdown = () => {
-  console.log('Shutting down gracefully...');
+  console.log("Shutting down gracefully...");
   server.close(() => {
     pool.end()
       .then(() => {
-        console.log('Server closed. Database pool drained');
+        console.log("Server closed. Database pool drained.");
         process.exit(0);
       })
       .catch(err => {
-        console.error('Error during shutdown:', err);
+        console.error("Error during shutdown:", err);
         process.exit(1);
       });
   });
 };
 
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
+process.on("SIGTERM", gracefulShutdown);
+process.on("SIGINT", gracefulShutdown);

@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
 const accountModel = require('../models/account-model');
 const utilities = require('../utilities');
 const bcrypt = require('bcryptjs');
@@ -48,30 +47,11 @@ accountController.buildLogin = async (req, res, next) => {
       },
       formData: {
         account_email: req.flash('account_email')?.[0] || ''
-      }
+      },
+      csrfToken: req.csrfToken() // Add CSRF token here
     });
   } catch (error) {
     next(error);
-  }
-};
-
-/* ****************************************
-*  Deliver account management view
-* *************************************** */
-accountController.accountManagement = async (req, res) => {
-  try {
-    let nav = await utilities.getNav();
-    res.render('account/accountManagement', {
-      title: "Account Management",
-      nav,
-      messages: {
-        error: req.flash('error'),
-        success: req.flash('success')
-      }
-    });
-  } catch (error) {
-    console.error('Error rendering account management view:', error);
-    res.status(500).send('Internal Server Error');
   }
 };
 
@@ -94,7 +74,7 @@ accountController.registerAccount = async (req, res, next) => {
 
     const emailExists = await accountModel.checkExistingEmail(account_email);
     if (emailExists) {
-      req.flash("error", "Email already exists. Please log in or use different email.");
+      req.flash("error", "Email already exists. Please log in or use a different email.");
       req.flash("account_firstname", account_firstname);
       req.flash("account_lastname", account_lastname);
       req.flash("account_email", account_email);
@@ -136,37 +116,117 @@ accountController.accountLogin = async (req, res) => {
   let nav = await utilities.getNav();
   const { account_email, account_password } = req.body;
   const accountData = await accountModel.getAccountByEmail(account_email);
+
   if (!accountData) {
-    req.flash("notice", "Please check your credentials and try again.");
+    req.flash("error", "Please check your credentials and try again.");
     res.status(400).render("account/login", {
       title: "Login",
       nav,
       errors: null,
-      account_email,
+      messages: {
+        error: ["Incorrect email or password"]
+      },
+      formData: { account_email },
+      csrfToken: req.csrfToken() // Include CSRF token
     });
     return;
   }
+
   try {
     if (await bcrypt.compare(account_password, accountData.account_password)) {
       delete accountData.account_password;
       const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 * 1000 });
-      if(process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === 'development') {
         res.cookie("jwt", accessToken, { httpOnly: true, maxAge: 3600 * 1000 });
       } else {
         res.cookie("jwt", accessToken, { httpOnly: true, secure: true, maxAge: 3600 * 1000 });
       }
       return res.redirect("/account/");
     } else {
-      req.flash("notice", "Please check your credentials and try again.");
+      req.flash("error", "Incorrect password. Please try again.");
       res.status(400).render("account/login", {
         title: "Login",
         nav,
         errors: null,
-        account_email,
+        messages: {
+          error: ["Incorrect password"]
+        },
+        formData: { account_email },
+        csrfToken: req.csrfToken() // Include CSRF token
       });
     }
   } catch (error) {
     throw new Error('Access Forbidden');
+  }
+};
+
+
+// Build update view
+accountController.buildUpdate = async (req, res, next) => {
+  try {
+    const account_id = req.params.account_id;
+    const accountData = await accountModel.getAccountById(account_id);
+    let nav = await utilities.getNav();
+    
+    res.render("account/update", {
+      title: "Update Account",
+      nav,
+      accountData,
+      messages: {
+        error: req.flash('error'),
+        formData: req.flash('formData')[0] || {}
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Process account update
+accountController.updateAccount = async (req, res, next) => {
+  try {
+    const { account_id, account_firstname, account_lastname, account_email } = req.body;
+    
+    const updateResult = await accountModel.updateAccount(
+      account_id,
+      account_firstname,
+      account_lastname,
+      account_email
+    );
+
+    if (updateResult) {
+      req.flash("success", "Account updated successfully");
+      res.redirect("/account/");
+    } else {
+      throw new Error("Account update failed");
+    }
+  } catch (error) {
+    req.flash("error", error.message);
+    req.flash("formData", req.body);
+    res.redirect(`/account/update/${req.body.account_id}`);
+  }
+};
+
+// Process password update
+accountController.updatePassword = async (req, res, next) => {
+  try {
+    const { account_id, account_password } = req.body;
+    const hashedPassword = await bcrypt.hash(account_password, 10);
+    
+    const updateResult = await accountModel.updatePassword(
+      account_id,
+      hashedPassword
+    );
+
+    if (updateResult) {
+      req.flash("success", "Password updated successfully");
+      res.redirect("/account/");
+    } else {
+      throw new Error("Password update failed");
+    }
+  } catch (error) {
+    req.flash("error", error.message);
+    res.redirect(`/account/update/${req.body.account_id}`);
   }
 };
 

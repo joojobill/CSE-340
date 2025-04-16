@@ -1,0 +1,22 @@
+
+<div class="container">
+  <h1>Confirm Deletion</h1>
+  <p>Are you sure you want to permanently delete the following inventory item?</p>
+  
+  <form method="POST" action="/inv/delete/<%= inv_id %>">
+    <input type="hidden" name="inv_id" value="<%= inv_id %>">
+    
+    <!-- Display Make, Model, Year, and Price as readonly fields -->
+    <label>Make: <input type="text" name="inv_make" value="<%= inv_make %>" readonly></label>
+    <label>Model: <input type="text" name="inv_model" value="<%= inv_model %>" readonly></label>
+    <label>Year: <input type="text" name="inv_year" value="<%= inv_year %>" readonly></label>
+    <label>Price: <input type="text" name="inv_price" value="<%= inv_price %>" readonly></label>
+
+    <p>Confirm Deletion - The delete is permanent.</p>
+    
+    <!-- Submit Button to delete item -->
+    <button type="submit">Delete</button>
+    <a href="/inv/type/<%= classification_id %>">Cancel</a>
+  </form>
+</div>
+

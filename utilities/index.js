@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken")
-require("dotenv").config()
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 const invModel = require("../models/inventory-model");
 const Util = {};
 
@@ -11,7 +11,7 @@ Util.getNav = async function () {
     const data = await invModel.getClassifications();
     let list = "<ul>";
     list += '<li><a href="/" title="Home page">Home</a></li>';
-    
+
     data.rows.forEach((row) => {
       list += `<li>
         <a href="/inv/type/${row.classification_id}" 
@@ -20,7 +20,7 @@ Util.getNav = async function () {
         </a>
       </li>`;
     });
-    
+
     list += "</ul>";
     return list;
   } catch (error) {
@@ -32,18 +32,17 @@ Util.getNav = async function () {
 /* ****************************************
  * Build Classification Grid View
  * *************************************** */
-Util.buildClassificationGrid = async function(data) {
+Util.buildClassificationGrid = async function (data) {
   try {
     if (!data || !data.rows || data.rows.length === 0) {
       return '<div class="alert alert-info">No vehicles found in this classification.</div>';
     }
 
     let grid = '<div class="row vehicle-grid">';
-    
-    data.rows.forEach(vehicle => {
+
+    data.rows.forEach((vehicle) => {
       const thumbnail = vehicle.inv_thumbnail || '/images/vehicles/no-image-tn.jpg';
-      const image = vehicle.inv_image || '/images/vehicles/no-image.jpg';
-      
+
       grid += `
         <div class="col-md-4 mb-4">
           <div class="card h-100">
@@ -58,7 +57,7 @@ Util.buildClassificationGrid = async function(data) {
                 ${vehicle.inv_year} ${vehicle.inv_make} ${vehicle.inv_model}
               </h5>
               <p class="card-text">
-                <strong>Price:</strong> $${new Intl.NumberFormat('en-US').format(vehicle.inv_price)}<br>
+                <strong>Price:</strong> ${Util.formatCurrency(vehicle.inv_price)}<br>
                 <strong>Miles:</strong> ${new Intl.NumberFormat('en-US').format(vehicle.inv_miles)}
               </p>
               <a href="/inv/detail/${vehicle.inv_id}" class="btn btn-primary">Details</a>
@@ -67,7 +66,7 @@ Util.buildClassificationGrid = async function(data) {
         </div>
       `;
     });
-    
+
     grid += '</div>';
     return grid;
   } catch (error) {
@@ -79,7 +78,7 @@ Util.buildClassificationGrid = async function(data) {
 /* ****************************************
  * Classification Select List Builder
  * *************************************** */
-Util.buildClassificationList = async function(classification_id = null) {
+Util.buildClassificationList = async function (classification_id = null) {
   try {
     const data = await invModel.getClassifications();
     let select = `
@@ -89,7 +88,7 @@ Util.buildClassificationList = async function(classification_id = null) {
       >
         <option value="">Choose a Classification</option>
     `;
-    
+
     data.rows.forEach((row) => {
       select += `
         <option value="${row.classification_id}"
@@ -99,7 +98,7 @@ Util.buildClassificationList = async function(classification_id = null) {
         </option>
       `;
     });
-    
+
     select += "</select>";
     return select;
   } catch (error) {
@@ -115,62 +114,72 @@ Util.handleErrors = fn => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-Util.handleError = function(error, req, res) {
+Util.handleError = function (error, req, res) {
   console.error('Error:', {
     message: error.message,
     stack: error.stack,
     route: req.originalUrl,
-    user: req.session.account?.account_id,
     timestamp: new Date().toISOString()
   });
-  
+
   const statusCode = error.status || 500;
-  const errorMessage = process.env.NODE_ENV === 'development' ? 
+  const errorMessage = process.env.NODE_ENV === 'development' ?
     error.message : 'An unexpected error occurred';
-  
+
   req.flash('error', errorMessage);
-  
+
   if (req.originalUrl.startsWith('/inv')) {
     return res.redirect('/inv/');
   }
   return res.redirect('/');
 };
+
 /* ****************************************
- * Check Login Middleware
- * *************************************** */
+ *  Check Login
+ * ************************************ */
 Util.checkLogin = (req, res, next) => {
-  if (req.session.account?.id) {
-    return next();
+  if (res.locals.loggedin) {
+    next();
+  } else {
+    req.flash("notice", "Please log in.");
+    return res.redirect("/account/login");
   }
-  req.flash("notice", "Please log in.");
-  return res.redirect("/account/login");
 };
 
-
+/* ****************************************
+ * Check Account Type
+ * *************************************** */
+Util.checkAccountType = (req, res, next) => {
+  if (res.locals.user && 
+      (res.locals.user.account_type === 'Employee' || 
+       res.locals.user.account_type === 'Admin')) {
+    return next();
+  }
+  req.flash('error', 'You must be an employee or admin to access this page');
+  return res.redirect('/account/login');
+};
 
 /* ****************************************
-* Middleware to check token validity
-**************************************** */
-Util.checkJWTToken = (req, res, next) => {
-  if (req.cookies.jwt) {
-   jwt.verify(
-    req.cookies.jwt,
-    process.env.ACCESS_TOKEN_SECRET,
-    function (err, accountData) {
-     if (err) {
-      req.flash("Please log in")
-      res.clearCookie("jwt")
-      return res.redirect("/account/login")
-     }
-     res.locals.accountData = accountData
-     res.locals.loggedin = 1
-     next()
-    })
-  } else {
-   next()
+ * Format Currency
+ * *************************************** */
+Util.formatCurrency = function (amount) {
+  if (typeof amount !== "number") {
+    amount = parseFloat(amount);
   }
- }
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD"
+  }).format(amount);
+};
 
-
+/* ****************************************
+ * Format Numbers with Commas
+ * *************************************** */
+Util.formatNumber = function (number) {
+  if (typeof number !== "number") {
+    number = parseFloat(number);
+  }
+  return new Intl.NumberFormat("en-US").format(number);
+};
 
 module.exports = Util;

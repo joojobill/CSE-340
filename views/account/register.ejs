@@ -1,9 +1,7 @@
-
-
 <main class="container">
   <h1><%= title %></h1>
 
-  <% if (messages?.error) { %>
+  <% if (messages?.error && messages.error.length) { %>
     <div class="flash-message error">
       <% messages.error.forEach(msg => { %>
         <p><%= msg %></p>
@@ -11,13 +9,18 @@
     </div>
   <% } %>
 
-  <% if (messages?.success) { %>
+  <% if (messages?.success && messages.success.length) { %>
     <div class="flash-message success">
-      <p><%= messages.success %></p>
+      <% messages.success.forEach(msg => { %>
+        <p><%= msg %></p>
+      <% }); %>
     </div>
   <% } %>
 
   <form action="/account/register" method="post" class="registration-form">
+    <!-- ✅ CSRF Token -->
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
     <div class="form-group">
       <label for="account_firstname">First Name*</label>
       <input 
