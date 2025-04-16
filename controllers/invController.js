@@ -1,5 +1,6 @@
 const invModel = require("../models/inventory-model");
 const utilities = require("../utilities/");
+const { validationResult } = require('express-validator');
 
 const invCont = {};
 
@@ -73,7 +74,8 @@ invCont.buildByInventoryId = async (req, res, next) => {
       title: `${data.inv_make} ${data.inv_model}`,
       nav: await utilities.getNav(),
       vehicle: data,
-      messages: req.flash()
+      messages: req.flash(),
+      formData: req.flash('formData')[0] || {}
     });
   } catch (error) {
     utilities.handleError(error, req, res);
@@ -88,7 +90,7 @@ invCont.buildAddClassification = async (req, res, next) => {
     res.render("inventory/add-classification", {
       title: "Add Classification",
       nav: await utilities.getNav(),
-      errors: req.flash('errors') || [], // Ensure errors is always an array
+      errors: req.flash('errors') || [],
       classification_name: req.flash('classification_name')[0] || "",
       messages: req.flash(),
       csrfToken: req.csrfToken()
@@ -138,10 +140,60 @@ invCont.buildAddInventory = async (req, res, next) => {
       classificationList,
       errors: req.flash('errors') || [],
       messages: req.flash(),
+      formData: req.flash('formData')[0] || {}, // Added formData
       csrfToken: req.csrfToken()
     });
   } catch (error) {
     utilities.handleError(error, req, res);
+  }
+};
+
+/* ******************************************
+ * Process inventory addition
+ * ******************************************/
+invCont.addInventory = async (req, res, next) => {
+  const errors = validationResult(req);
+  
+  if (!errors.isEmpty()) {
+    req.flash('errors', errors.array());
+    req.flash('formData', req.body); // Save form data for repopulation
+    return res.redirect("/inv/add-inventory");
+  }
+
+  try {
+    const { 
+      inv_make, 
+      inv_model, 
+      inv_year, 
+      inv_description, 
+      inv_price, 
+      inv_miles, 
+      inv_color, 
+      classification_id, 
+      inv_image 
+    } = req.body;
+
+    const result = await invModel.addInventory(
+      inv_make,
+      inv_model,
+      inv_year,
+      inv_description,
+      inv_price,
+      inv_miles,
+      inv_color,
+      classification_id,
+      inv_image
+    );
+    
+    if (result) {
+      req.flash("success", "Inventory added successfully!");
+      return res.redirect("/inv/");
+    }
+    throw new Error("Inventory addition failed");
+  } catch (error) {
+    req.flash("error", "Failed to add inventory: " + error.message);
+    req.flash('formData', req.body); // Save form data for repopulation
+    res.redirect("/inv/add-inventory");
   }
 };
 
