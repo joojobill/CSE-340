@@ -35,6 +35,25 @@
           <div class="price-year">
             <span class="price"><%= utilities.formatCurrency(vehicle.inv_price) %></span>
             <span class="year"><%= vehicle.inv_year %></span>
+            <% if (loggedin) { %>
+              <% if (isInWishlist) { %>
+                <form action="/wishlist/remove" method="POST" class="mt-3">
+                  <input type="hidden" name="inv_id" value="<%= vehicle.inv_id %>">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button type="submit" class="btn btn-danger">
+                    Remove from Wishlist
+                  </button>
+                </form>
+              <% } else { %>
+                <form action="/wishlist/add" method="POST" class="mt-3">
+                  <input type="hidden" name="inv_id" value="<%= vehicle.inv_id %>">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button type="submit" class="btn btn-primary">
+                    Add to Wishlist
+                  </button>
+                </form>
+              <% } %>
+            <% } %>
           </div>
           
           <div class="specs">
